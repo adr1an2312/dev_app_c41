@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Ablaufplan für C-41 bei 30 °C mit Adox C-TEC 41: Übersicht, Packliste und Arbeitsweg mit Timer und Rotationssignalen.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#E8ECEA">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101518">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='34' r='24' fill='%231F6C9E'/%3E%3Crect x='26' y='2' width='12' height='8' rx='2' fill='%231F6C9E'/%3E%3Cpath d='M32 34V18' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+</style>
+<title>C-41 Ablaufplan 30 °C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  /* Layout: Laborplatz für iPad und Desktop im Querformat. Schmale Fahrplan-Leiste links, großer aktueller Schritt, nächster Schritt rechts. Jede Chemie hat ihre eigene Farbe. */
+  --bg:#E8ECEA; --panel:#F6F8F7; --raised:#FFFFFF; --ink:#162023; --muted:#53626A; --line:#CBD4D2;
+  --accent:#1C5A74; --on-accent:#FFFFFF;
+  --dev:#985A0B; --blix:#9E3350; --water:#1F6C9E; --stab:#2F7748; --prep:#5E6C73; --on-bath:#FFFFFF;
+  --warn:#B23C0A; --on-warn:#FFFFFF; --ok:#2C7A4B;
+  --track:rgba(22,32,35,.12); --shade:rgba(22,32,35,.18);
+  --f-display:'Barlow Condensed','Arial Narrow','Roboto Condensed',sans-serif;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101518; --panel:#171E21; --raised:#1E272B; --ink:#E6ECEA; --muted:#93A1A6; --line:#2A3438;
+    --accent:#7CC0DA; --on-accent:#0D1A20;
+    --dev:#E2A24E; --blix:#E57E97; --water:#69B6E8; --stab:#7FCB98; --prep:#9AA8AD; --on-bath:#0F1416;
+    --warn:#F08A4B; --on-warn:#1A0E06; --ok:#7FCB98;
+    --track:rgba(230,236,234,.14); --shade:rgba(0,0,0,.45);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101518; --panel:#171E21; --raised:#1E272B; --ink:#E6ECEA; --muted:#93A1A6; --line:#2A3438;
+  --accent:#7CC0DA; --on-accent:#0D1A20;
+  --dev:#E2A24E; --blix:#E57E97; --water:#69B6E8; --stab:#7FCB98; --prep:#9AA8AD; --on-bath:#0F1416;
+  --warn:#F08A4B; --on-warn:#1A0E06; --ok:#7FCB98;
+  --track:rgba(230,236,234,.14); --shade:rgba(0,0,0,.45);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.b-dev{--bc:var(--dev)} .b-blix{--bc:var(--blix)} .b-water{--bc:var(--water)} .b-stab{--bc:var(--stab)} .b-prep{--bc:var(--prep)}
+
+.shell{height:100%;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;align-items:center;gap:12px 18px;padding-block:10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.mark{font-family:var(--f-display);font-weight:700;font-size:26px;letter-spacing:.02em;line-height:1;white-space:nowrap}
+.brand-sub{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:2px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.tabs button{font-weight:600;font-size:14px;line-height:1;border:0;background:transparent;color:var(--muted);padding:9px 14px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.top-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+main{flex:1;min-height:0;overflow:auto;padding-block:18px}
+main.is-work{overflow:hidden;padding-block:12px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:12px;line-height:1;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:999px;background:color-mix(in srgb,var(--bc,var(--accent)) 14%,var(--raised));color:var(--ink);border:1px solid color-mix(in srgb,var(--bc,var(--accent)) 40%,transparent);white-space:nowrap}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--bc,var(--accent))}
+button.chip{cursor:pointer;min-height:32px}
+.warnchip{--bc:var(--warn)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{margin:0;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+.btn{font-weight:600;font-size:15px;line-height:1.1;padding:12px 16px;border-radius:10px;border:1px solid var(--line);background:var(--raised);color:var(--ink);cursor:pointer;min-height:48px}
+.btn:hover{border-color:var(--muted)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.big{flex:1 1 220px;font-size:18px;min-height:58px}
+.btn.small{min-height:36px;padding:8px 12px;font-size:13px}
+.btn.armed{background:var(--warn);border-color:var(--warn);color:var(--on-warn)}
+
+.bar{height:8px;background:var(--track);border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--bc,var(--accent));border-radius:inherit;transition:width .2s linear}
+
+/* Übersicht und Packliste */
+.page{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:30px}
+.ov-dyn{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;min-width:0}
+.page h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,48px);line-height:1;margin:4px 0 8px;text-wrap:balance}
+.page h2{font-family:var(--f-display);font-weight:600;font-size:22px;letter-spacing:.03em;margin:0 0 12px;text-wrap:balance}
+.lede{margin:0;max-width:62ch;color:var(--muted)}
+.intro{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:end}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.facts div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+.facts dt{font-size:12px;color:var(--muted)}
+.facts dd{margin:0;font-family:var(--f-mono);font-weight:600;font-size:clamp(18px,2.2vw,24px);font-variant-numeric:tabular-nums;white-space:nowrap}
+.strip{display:flex;gap:3px;border-radius:12px;overflow:hidden}
+.seg{flex:1 1 0;min-width:58px;background:var(--bc);color:var(--on-bath);padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.seg-name{font-family:var(--f-display);font-weight:600;font-size:17px;line-height:1.1;hyphens:manual;overflow-wrap:anywhere}
+.seg-time{font-family:var(--f-mono);font-size:13px}
+.strip-axis{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px;font-family:var(--f-mono)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{text-align:left;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stepname{display:flex;align-items:center;gap:10px;font-weight:600}
+.stepname b{font-family:var(--f-mono);font-weight:500;color:var(--muted);font-size:13px;min-width:1.6em}
+.stepname i{width:10px;height:10px;border-radius:50%;background:var(--bc);flex:none}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
+.rules,.notes{margin:0;padding-left:20px;display:grid;gap:8px;max-width:65ch}
+.notes{color:var(--muted)}
+.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>span:first-child{font-size:12px;font-weight:600;color:var(--muted)}
+.field input[type=text],.field input[type=number],.field select,.field textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--raised);min-height:44px}
+.field.check{flex-direction:row;align-items:center;gap:10px}
+.field.wide{grid-column:1/-1}
+.err{font-size:12px;color:var(--warn);min-height:1em}
+.set-actions{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none;margin:0}
+
+.pack-head{display:flex;align-items:flex-end;gap:16px 24px;flex-wrap:wrap}
+.pack-progress{flex:1 1 220px;display:grid;gap:6px;font-weight:600}
+.packgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.packgroup{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.packgroup h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0 0 8px}
+.packgroup ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.packgroup label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.packgroup input:checked+span{color:var(--muted)}
+
+/* Arbeitsweg */
+.work{height:100%;display:grid;grid-template-columns:96px minmax(0,1fr) minmax(220px,.5fr);gap:14px}
+.road{display:flex;flex-direction:column;gap:2px;overflow:auto;padding-block:2px;min-height:0}
+.stop{position:relative;display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:8px;align-items:center;text-align:left;background:none;border:0;padding:6px 4px;border-radius:8px;color:var(--muted);cursor:pointer;min-height:44px}
+.stop .dot{grid-row:1/3;width:14px;height:14px;border-radius:50%;border:2px solid var(--bc);background:var(--panel);justify-self:center;position:relative;z-index:1}
+.stop:not(:last-child)::after{content:"";position:absolute;left:13px;top:calc(50% + 7px);height:calc(100% - 12px);width:2px;background:var(--line)}
+.stop.done::after{background:var(--bc)}
+.stop.done .dot{background:var(--bc)}
+.stop.now{background:color-mix(in srgb,var(--bc) 16%,transparent);color:var(--ink)}
+.stop.now .dot{width:18px;height:18px;background:var(--bc);box-shadow:0 0 0 3px color-mix(in srgb,var(--bc) 30%,transparent)}
+.stop .lbl{font-family:var(--f-display);font-weight:600;font-size:15px;letter-spacing:.02em;line-height:1.1;hyphens:manual}
+.stop .lbl:last-child{grid-row:1/3}
+.stop .dur{font-family:var(--f-mono);font-size:11px;color:var(--muted);line-height:1.2}
+.stop.now .dur{color:var(--ink)}
+
+.now-panel,.next-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;min-height:0;overflow:auto;display:flex;flex-direction:column}
+.now-panel{padding:14px 18px 0;container-type:inline-size}
+.now-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.stepno{font-size:13px;color:var(--muted)}
+.now-title{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4.5vh,38px);line-height:1.05;margin:8px 0 12px;text-wrap:balance}
+.now-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:14px;align-items:stretch}
+@container (max-width:470px){.now-grid{grid-template-columns:minmax(0,1fr)}}
+.clock{display:flex;flex-direction:column;gap:8px;justify-content:center;min-width:0;container-type:inline-size}
+.clock-lbl{font-weight:600;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.clock-val{font-family:var(--f-mono);font-weight:600;font-size:min(clamp(56px,16vh,136px),34cqi);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.03em;white-space:nowrap}
+.clock.over .clock-val{color:var(--warn)}
+.cue{border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--bc) 10%,var(--raised));border:1px solid color-mix(in srgb,var(--bc) 30%,transparent);min-height:150px;min-width:0;container-type:inline-size}
+.cue-body{display:flex;gap:12px;align-items:flex-start}
+.cue-text{flex:1 1 auto;min-width:0;display:grid;gap:8px;container-type:inline-size}
+.cue-main{font-family:var(--f-display);font-weight:700;font-size:min(clamp(26px,6vh,44px),16cqi);line-height:1.02;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:break-word;hyphens:auto}
+.cue-detail{font-size:15px}
+.metro{flex:none;width:clamp(56px,min(15vh,28cqi),108px);display:grid;justify-items:center;gap:2px}
+.metro svg{width:100%;height:auto;display:block;overflow:visible}
+.metro-track{fill:none;stroke:currentColor;stroke-opacity:.35;stroke-width:5}
+.metro-dot{fill:currentColor}
+.metro.idle .metro-dot{fill-opacity:.35}
+.metro-num{fill:currentColor;font-family:var(--f-mono);font-weight:600;font-size:20px}
+.metro-cap{font-size:11px;line-height:1.2;text-align:center}
+.cue.is-rot,.cue.is-drain,.cue.is-cont,.cue.is-fill{background:var(--bc);border-color:var(--bc);color:var(--on-bath)}
+.cue.is-rot .bar,.cue.is-drain .bar,.cue.is-cont .bar,.cue.is-fill .bar{background:color-mix(in srgb,var(--on-bath) 25%,transparent)}
+.cue.is-rot .bar span,.cue.is-drain .bar span,.cue.is-cont .bar span,.cue.is-fill .bar span{background:var(--on-bath)}
+.cue.is-done{background:color-mix(in srgb,var(--ok) 14%,var(--raised));border-color:var(--ok)}
+.cue.is-rot{animation:pulse .9s ease-in-out infinite alternate}
+@keyframes pulse{from{box-shadow:0 0 0 0 color-mix(in srgb,var(--bc) 0%,transparent)}to{box-shadow:0 0 0 9px color-mix(in srgb,var(--bc) 35%,transparent)}}
+.rot{margin-top:auto;display:grid;gap:6px}
+.rot-row{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-weight:600}
+.rot-row .mono{font-size:26px}
+.rot-count{font-size:12px}
+.extra{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:14px;align-items:start}
+.hint{margin:0;font-size:14px;align-self:center}
+.hint.ok{color:var(--ok)} .hint.warn{color:var(--warn)}
+.proto-box{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;background:var(--raised);overflow:hidden}
+.proto-head{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:600;font-size:13px}
+.proto-box pre{margin:0;padding:10px;font-family:var(--f-mono);font-size:12.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.todo{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px}
+.todo li{position:relative;padding-left:18px;max-width:72ch}
+.todo li::before{content:"";position:absolute;left:2px;top:.55em;width:7px;height:7px;border-radius:2px;background:var(--bc)}
+.todo.check li{padding-left:0}
+.todo.check li::before{display:none}
+.todo label{display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:2px 0}
+.todo input:checked+span{color:var(--muted)}
+.controls{position:sticky;bottom:0;margin-top:auto;display:flex;gap:10px;flex-wrap:wrap;padding-block:14px;background:var(--panel);box-shadow:0 -10px 12px -10px var(--shade)}
+.portrait-hint{display:none;margin:0 0 4px;font-size:13px;color:var(--muted)}
+
+.next-panel{padding:16px;gap:12px}
+.next-card{border:1px solid color-mix(in srgb,var(--bc) 40%,var(--line));background:color-mix(in srgb,var(--bc) 7%,var(--raised));border-radius:12px;padding:14px;display:grid;gap:8px}
+.next-card h3{font-family:var(--f-display);font-weight:700;font-size:28px;line-height:1.05;margin:0}
+.next-dur{margin:0;font-family:var(--f-mono);font-size:14px}
+.next-card ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.mini{margin:4px 0 0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pour{margin:0;font-size:14px}
+.eta{font-size:14px;color:var(--muted)}
+.eta b{font-family:var(--f-mono);font-size:22px;color:var(--ink);font-weight:600}
+.later{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.later li{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.later li:last-child{border-bottom:0}
+.later i{width:10px;height:10px;border-radius:50%;background:var(--bc)}
+.later .mono{color:var(--muted);font-size:13px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+
+@media (max-height:540px) and (min-width:761px){
+  .top{padding-block:6px}
+  .mark{font-size:21px}
+  .tabs button{padding:7px 11px;font-size:13px}
+  .now-panel{padding:10px 12px 0}
+  .now-title{margin:4px 0 8px}
+  .clock-val{font-size:min(clamp(44px,18vh,96px),34cqi)}
+  .cue{min-height:0;padding:10px 12px}
+  .cue-main{font-size:min(24px,16cqi)}
+  .metro-cap{display:none}
+  .todo{font-size:13.5px;gap:4px;margin-top:10px}
+  .stop{padding:3px 4px;min-height:0}
+  .stop .lbl{font-size:13px}
+  .controls{padding-block:8px}
+  .btn{min-height:42px;padding:9px 12px}
+  .btn.big{min-height:46px;font-size:16px}
+}
+@media (max-width:760px){
+  .intro{grid-template-columns:minmax(0,1fr)}
+  main.is-work{overflow:auto}
+  .work{height:auto;grid-template-columns:minmax(0,1fr)}
+  .road{flex-direction:row;overflow-x:auto;padding-bottom:4px}
+  .stop{grid-template-columns:auto;justify-items:center;text-align:center;min-width:76px;row-gap:4px}
+  .stop .dot,.stop .lbl:last-child{grid-row:auto}
+  .stop:not(:last-child)::after{display:none}
+  .now-panel,.next-panel{overflow:visible}
+}
+@media (max-width:760px) and (orientation:portrait){
+  .portrait-hint{display:block}
+}
+@media (max-width:420px){
+  .facts{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .brand-sub{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .cue.is-rot{animation:none}
+  .bar span{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="mark">C-41 · 30 °C</span><span class="brand-sub">Adox C-TEC 41 · Paterson-Doppeltank</span></div>
+    <nav class="tabs" role="tablist" aria-label="Bereiche">
+      <button role="tab" id="tab-uebersicht" data-act="tab" data-tab="uebersicht">Übersicht</button>
+      <button role="tab" id="tab-packliste" data-act="tab" data-tab="packliste">Packliste</button>
+      <button role="tab" id="tab-arbeitsweg" data-act="tab" data-tab="arbeitsweg">Arbeitsweg</button>
+    </nav>
+    <div class="top-right">
+      <button id="runChip" class="chip b-dev" data-act="tab" data-tab="arbeitsweg" hidden></button>
+      <span id="heatChip" class="chip b-water" hidden></span>
+      <button id="soundWarn" class="chip warnchip" data-act="unlock" hidden><i></i>Ton aus – hier tippen</button>
+      <button id="soundBtn" class="btn small" data-act="sound" aria-pressed="true">Ton an</button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function(){
+'use strict';
+var KEY='c41-ablauf-30-v1';
+var DEF={devTime:480,filmNo:1,films:1,volume:500,agInitial:10,agInterval:30,agCount:4,agTempo:2,sound:true};
+var TABS=['uebersicht','packliste','arbeitsweg'];
+var NSTEPS=10;
+var S=load();
+var fired=new Set();
+var armed={};
+var view=document.getElementById('view');
+
+/* ---------- Hilfsfunktionen ---------- */
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fmt(sec){sec=Math.max(0,Math.round(sec));var m=Math.floor(sec/60),s=sec%60;return m+':'+String(s).padStart(2,'0');}
+function parseTime(v){
+  v=String(v).trim().replace(',','.');
+  if(/^\d{1,2}:\d{1,2}$/.test(v)){var p=v.split(':').map(Number);return p[1]>59?null:p[0]*60+p[1];}
+  if(/^\d+(\.\d+)?$/.test(v))return Math.round(parseFloat(v)*60);
+  return null;
+}
+function dec(n,d){return Number(n).toFixed(d).replace('.',',');}
+function clamp(n,a,b){n=Math.round(Number(n));if(!isFinite(n))return a;return Math.min(b,Math.max(a,n));}
+function clampHalf(n,a,b){n=Math.round(Number(String(n).replace(',','.'))*2)/2;if(!isFinite(n))return a;return Math.min(b,Math.max(a,n));}
+function numOr(v,def,a,b,half){if(typeof v!=='number'||!isFinite(v))return def;return half?clampHalf(v,a,b):clamp(v,a,b);}
+function obj(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}
+
+function load(){
+  var d=null;
+  try{d=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+  d=obj(d);
+  var st=Object.assign({tab:'uebersicht',step:0,running:false,startedAt:0,before:0,pack:{},checks:{},actual:{},heatStart:0,dryStart:0,temp:'',notes:'',runDate:0},d);
+  st.step=Number.isInteger(st.step)?Math.min(NSTEPS-1,Math.max(0,st.step)):0;
+  if(TABS.indexOf(st.tab)<0)st.tab='uebersicht';
+  st.pack=obj(st.pack);st.checks=obj(st.checks);st.actual=obj(st.actual);
+  st.running=st.running===true;
+  ['startedAt','before','heatStart','dryStart','runDate'].forEach(function(k){var n=Number(st[k]);st[k]=isFinite(n)&&n>0?n:0;});
+  if(st.running&&!st.startedAt)st.running=false;
+  st.temp=typeof st.temp==='string'?st.temp:'';
+  st.notes=typeof st.notes==='string'?st.notes:'';
+  var r=obj(d.settings),s={};
+  s.devTime=numOr(r.devTime,DEF.devTime,60,1800);
+  s.filmNo=numOr(r.filmNo,DEF.filmNo,1,99);
+  s.volume=r.volume===300?300:500;
+  s.films=r.films===2&&s.volume===500?2:1;
+  s.agInitial=numOr(r.agInitial,DEF.agInitial,0,60);
+  s.agInterval=numOr(r.agInterval,DEF.agInterval,10,120);
+  s.agCount=numOr(r.agCount,DEF.agCount,1,10);
+  s.agTempo=numOr(r.agTempo,DEF.agTempo,1,4,true);
+  s.sound=r.sound!==false;
+  st.settings=s;
+  return st;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function tempoTxt(){var t=S.settings.agTempo;return dec(t,t%1?1:0)+' s';}
+function moveTxt(){var s=S.settings;return (s.agInitial>0?'erst '+s.agInitial+' s durchgehend, dann ':'')+'alle '+s.agInterval+' s '+s.agCount+'×, '+tempoTxt()+' pro Kippen';}
+function filmRange(){var s=S.settings;return 'Nr. '+s.filmNo+(s.films===2?'–'+(s.filmNo+1):'');}
+
+/* ---------- Ablauf ---------- */
+function steps(){
+  var s=S.settings,v=s.volume;
+  var devStart=s.agInitial>0?'Zügig einfüllen, Kappe drauf, '+s.agInitial+' s durchgehend kippen, dann 2× fest aufklopfen.':'Zügig einfüllen, Kappe drauf, 2× fest aufklopfen.';
+  return [
+  {id:'heat',short:'Heizen',chip:'Vorbereitung',title:'Wasserbad aufheizen',bath:'prep',kind:'prep',est:'30–45 min',
+   todo:['CineStill TCS in die Wanne, Wasser bis knapp unter die Flaschenhälse, auf 30,0 °C stellen.',
+         'Flaschen DEV, BLIX und STAB ins Bad stellen, immer in dieser Reihenfolge von links nach rechts.',
+         'Etwa 4 l Wasser für Vorwärmen und Wässern auf 30 °C bringen: Krug mit ins Bad oder am Hahn mischen und messen.',
+         'Das Aufheizen dauert 30–45 min. In der Zeit spulst du den Film ein.'],
+   prepare:['TCS, Wanne, Flaschen','Krug für das Waschwasser']},
+  {id:'load',short:'Einspulen',chip:'Vorbereitung',title:'Film einspulen',bath:'prep',kind:'prep',est:'5–10 min',
+   todo:['Hände, Spiralen und Tank müssen trocken sein.',
+         'Im Wechselsack oder komplett dunklen Raum: Film auf die Spirale, Spirale auf die Mittelsäule, in den Tank, Trichterdeckel fest aufdrücken.',
+         'Nur ein Kleinbildfilm im Doppeltank: die leere zweite Spirale obendrauf setzen, damit die Filmspirale nicht hochrutscht.',
+         'Licht erst an, wenn der Deckel sicher sitzt.'],
+   prepare:['Wechselsack oder dunkler Raum','Schere, Filmrückholer, Spiralen, Tank, Deckel']},
+  {id:'measure',short:'Messen',chip:'Vorbereitung',title:'Temperatur prüfen und abmessen',bath:'prep',kind:'prep',est:'5 min',
+   todo:['Handschuhe an, Fenster auf.',
+         'Entwickler in der Flasche mit dem zweiten Thermometer messen. Ziel: 30,0 °C. Die Anzeige des TCS allein reicht nicht.',
+         v+' ml DEV, '+v+' ml BLIX und '+v+' ml STAB in die beschrifteten Becher füllen und zurück ins Bad stellen.',
+         'Entwicklerzeit prüfen: Film 1 = 8:00. Ab Film 2 die Zeit aus der Adox-Tabelle im Kit eintragen.',
+         'Trichter und Tank griffbereit. Ab dem Vorwärmen läuft alles ohne Pause durch.'],
+   prepare:['Zweites Thermometer','3 Becher: DEV, BLIX, STAB','Handschuhe']},
+  {id:'prewarm',short:'Vor­wärmen',chip:'Wasser',title:'Tank vorwärmen',bath:'water',kind:'timed',duration:60,mode:'continuous',temp:'30 °C',move:'durchgehend sanft',pourTo:'Abfluss',
+   todo:[v+' ml Wasser mit 30 °C einfüllen.',
+         'Sanft durchgehend kippen, im Takt des Kreises, damit Tank und Spiralen warm werden.',
+         'Vollständig ausgießen und kurz abtropfen lassen. Restwasser verdünnt sonst den Entwickler.'],
+   prepare:[v+' ml Wasser, 30 °C, im Krug']},
+  {id:'dev',short:'Ent­wickler',chip:'DEV',title:'Entwickler',bath:'dev',kind:'timed',duration:s.devTime,mode:'invert',temp:'30,0 °C',move:moveTxt(),pourTo:'DEV-Flasche',
+   todo:['Die Uhr läuft vom Beginn des Eingießens bis zum Ende des Ausgießens. So rechnet auch Adox.',
+         devStart,
+         'Alle '+s.agInterval+' s: '+s.agCount+'× kippen mit leichter Drehung, im Takt des Kreises. Dazwischen steht der Tank im Bad, Wasser unter dem Trichterdeckel.',
+         '10 s vor Ende ausgießen, zurück in die DEV-Flasche. Flasche randvoll machen oder Luft herausdrücken.'],
+   prepare:['DEV-Becher, '+v+' ml, 30 °C','Trichter DEV','Start drücken, sobald du eingießt']},
+  {id:'blix',short:'Blix',chip:'BLIX',title:'Bleichfixierbad',bath:'blix',kind:'timed',duration:360,mode:'invert',temp:'30 °C',move:moveTxt(),pourTo:'BLIX-Flasche',
+   todo:['Direkt nach dem Entwickler einfüllen, ohne Zwischenwässern.',
+         'Bewegung wie beim Entwickler: '+moveTxt()+'.',
+         'Die Blix-Zeit nicht verkürzen. Zu kurz lässt Silber im Film.',
+         '10 s vor Ende ausgießen, zurück in die BLIX-Flasche. Nie in den DEV-Becher oder DEV-Trichter.'],
+   prepare:['BLIX-Becher, '+v+' ml','Trichter BLIX','Start drücken, sobald du eingießt']},
+  {id:'wash',short:'Wässern',chip:'Wasser',title:'Wässern',bath:'water',kind:'timed',duration:360,mode:'wash',temp:'28–32 °C',move:'6 Füllungen, je 10× kippen',pourTo:'Abfluss',
+   todo:['Der Film ist jetzt fixiert, Licht schadet nicht mehr. Zum Kippen bleiben Deckel und Kappe drauf.',
+         'Wasser mit 28–32 °C, Tank jedes Mal voll machen.',
+         'Jede Minute wechseln: ausgießen, frisch füllen, 10× kippen im Takt des Kreises. Das sind 6 Füllungen.',
+         'Das Waschwasser kommt in den Abfluss.'],
+   prepare:['ca. 3,5 l Wasser, 28–32 °C','Freier Weg zum Abfluss']},
+  {id:'stab',short:'Stabi',chip:'STAB',title:'Stabilisator',bath:'stab',kind:'timed',duration:60,mode:'gentle',temp:'30 °C oder Raumtemperatur',move:'erste 10 s sanft',pourTo:'STAB-Flasche',
+   todo:['Einfüllen und die ersten 10 s sanft kippen. Nicht schütteln, der Stabilisator schäumt.',
+         'Danach ruhen lassen.',
+         '10 s vor Ende ausgießen, zurück in die STAB-Flasche.',
+         'Danach nicht mehr wässern.'],
+   prepare:['STAB-Becher, '+v+' ml','Trichter STAB']},
+  {id:'hang',short:'Auf­hängen',chip:'Trocknen',title:'Film aufhängen',bath:'prep',kind:'prep',est:'2–4 h trocknen',
+   todo:['Spirale öffnen, den Film nur an den Rändern anfassen.',
+         'Oben eine Filmklammer, unten eine als Gewicht.',
+         'Nicht abstreifen oder abwischen.',
+         'Staubarm trocknen lassen, zum Beispiel im Bad nach kurzem Duschen. Dauer 2–4 h.'],
+   prepare:['2 Filmklammern pro Film','Staubarmer Platz zum Aufhängen']},
+  {id:'clean',short:'Protokoll',chip:'Abschluss',title:'Aufräumen und Protokoll',bath:'prep',kind:'prep',est:'10 min',
+   todo:['Strichliste auf DEV-, BLIX- und STAB-Flasche: ein Strich pro Film.',
+         'Flaschen voll und luftdicht verschließen, dunkel lagern.',
+         'Becher, Trichter, Tank und Spiralen gründlich mit Wasser spülen und offen trocknen lassen.',
+         'Handschuhe aus, Hände waschen.',
+         'Erschöpften Blix nicht in den Abfluss gießen. Er enthält Silber und gehört zur Schadstoffsammelstelle.'],
+   prepare:['Wasserfester Stift für die Strichliste','Protokoll in dieser App']}
+  ];
+}
+function stepIndex(id){var st=steps();for(var i=0;i<st.length;i++)if(st[i].id===id)return i;return -1;}
+
+var PACK=[
+ {g:'Chemie',items:[['dev','DEV-Arbeitslösung, Flasche beschriftet'],['blix','BLIX-Arbeitslösung, Flasche beschriftet'],['stab','STAB-Arbeitslösung, mit destilliertem Wasser angesetzt'],['sheet','Adox-Datenblatt mit Zeittabelle']]},
+ {g:'Tank und Film',items:[['tank','Paterson-Doppeltank mit Trichterdeckel und Kappe'],['reels','2 Spiralen und Mittelsäule'],['film','Film: 1× Rollfilm oder bis 2× Kleinbild'],['bag','Wechselsack oder komplett dunkler Raum'],['scissors','Schere und Filmrückholer']]},
+ {g:'Temperatur',items:[['tcs','CineStill TCS mit Wanne oder Box'],['thermo','Zweites Thermometer, digital'],['water','Ca. 4 l Wasser für Vorwärmen und Wässern']]},
+ {g:'Abmessen und Gießen',items:[['cups','3 Messbecher, beschriftet DEV / BLIX / STAB'],['funnel','Trichter: einer pro Chemie oder dazwischen spülen'],['marker','Wasserfester Stift für die Strichliste']]},
+ {g:'Schutz',items:[['gloves','Nitrilhandschuhe'],['goggles','Schutzbrille'],['towel','Küchenrolle und Handtuch'],['air','Fenster auf oder Lüftung an']]},
+ {g:'Trocknen',items:[['clips','Filmklammern, 2 pro Film'],['spot','Staubarmer Platz zum Aufhängen']]},
+ {g:'Dieses Gerät',items:[['power','iPad oder Laptop geladen oder am Kabel'],['loud','Ton laut: Signal vor jeder Rotation'],['place','Im Querformat aufgestellt, außer Spritzweite']]}
+];
+
+/* ---------- Bewegungsplan ---------- */
+function events(c){
+  var D=c.duration,s=S.settings,E=[],v=s.volume,tp=s.agTempo;
+  if(c.mode==='invert'){
+    var iv=Math.max(10,s.agInterval),iEnd=Math.min(10+s.agInitial,D-10);
+    var cyc=Math.min(Math.max(3,Math.round(s.agCount*tp)),iv-3);
+    var n=Math.max(1,Math.min(s.agCount,Math.floor(cyc/tp)));
+    E.push({at:0,end:10,cue:'Einfüllen',detail:s.agInitial>0?'Zügig durch den Trichter gießen, Kappe drauf.':'Zügig durch den Trichter gießen, Kappe drauf, 2× fest aufklopfen.',kind:'fill'});
+    if(iEnd>10)E.push({at:10,end:iEnd,cue:'Durchgehend kippen',detail:'Im Takt des Kreises. Danach 2× fest aufklopfen.',kind:'cont',spin:Math.max(1,Math.floor((iEnd-10)/tp))});
+    for(var t=iv;t+cyc<=D-10;t+=iv){if(t<iEnd)continue;E.push({at:t,end:t+cyc,cue:'Jetzt '+n+'× kippen',detail:'Im Takt des Kreises, mit leichter Drehung. Dann zurück ins Bad.',kind:'rot',spin:n});}
+    E.push({at:D-10,end:D,cue:'Ausgießen',detail:'Zurück in die '+c.pourTo+'.',kind:'drain'});
+  }else if(c.mode==='wash'){
+    var wk=Math.round(10*tp),e1=Math.min(10+wk,57);
+    E.push({at:0,end:10,cue:'Wasser einfüllen',detail:'28–32 °C, Tank voll machen.',kind:'fill'});
+    E.push({at:10,end:e1,cue:'10× kippen',detail:'Im Takt des Kreises. Danach stehen lassen bis zum nächsten Wechsel.',kind:'cont',spin:Math.max(1,Math.min(10,Math.floor((e1-10)/tp)))});
+    for(var w=60;w<=D-60;w+=60){
+      var ce=Math.min(w+15+wk,w+57,D-10);
+      E.push({at:w,end:w+15,cue:'Wasser wechseln',detail:'Ausgießen, frisch füllen, Kappe drauf.',kind:'rot'});
+      E.push({at:w+15,end:ce,cue:'10× kippen',detail:'Im Takt des Kreises. Danach stehen lassen.',kind:'cont',spin:Math.max(1,Math.min(10,Math.floor((ce-w-15)/tp)))});
+    }
+    E.push({at:D-10,end:D,cue:'Ausgießen',detail:'Wasser in den Abfluss.',kind:'drain'});
+  }else if(c.mode==='gentle'){
+    E.push({at:0,end:10,cue:'Einfüllen',detail:'Ruhig eingießen, Kappe drauf.',kind:'fill'});
+    E.push({at:10,end:20,cue:'Sanft kippen',detail:'Langsam im Takt des Kreises. Nicht schütteln, der Stabilisator schäumt.',kind:'cont',spin:Math.max(1,Math.floor(10/tp))});
+    E.push({at:D-10,end:D,cue:'Ausgießen',detail:'Zurück in die '+c.pourTo+'.',kind:'drain'});
+  }else{
+    E.push({at:0,end:10,cue:'Wasser einfüllen',detail:v+' ml, 30 °C.',kind:'fill'});
+    E.push({at:10,end:D-10,cue:'Sanft durchgehend kippen',detail:'Im Takt des Kreises. So werden Tank und Spiralen warm.',kind:'cont',spin:Math.max(1,Math.floor((D-20)/tp))});
+    E.push({at:D-10,end:D,cue:'Ausgießen',detail:'Vollständig in den Abfluss, kurz abtropfen lassen.',kind:'drain'});
+  }
+  return E;
+}
+var REST={invert:['Ruhen','Der Tank steht im Wasserbad.'],wash:['Stehen lassen','Bis zum nächsten Wasserwechsel.'],gentle:['Ruhen lassen','Keine Bewegung mehr.'],continuous:['Kippen','Weiter sanft kippen.']};
+
+/* ---------- Ton, Vibration, Bildschirm ---------- */
+var ac=null;
+function audio(){
+  if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){ac=null;}}
+  if(ac&&ac.state!=='running'&&ac.state!=='closed'){try{var r=ac.resume();if(r&&r.catch)r.catch(function(){});}catch(e){}}
+  return ac;
+}
+function beep(f,d,delay,force){
+  if(!S.settings.sound&&!force)return;
+  var a=audio();if(!a)return;
+  try{
+    var o=a.createOscillator(),g=a.createGain(),t0=a.currentTime+(delay||0);
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.45,t0+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
+    o.connect(g);g.connect(a.destination);o.start(t0);o.stop(t0+d+0.03);
+  }catch(e){}
+}
+function vib(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+var wl=null;
+function wake(){
+  try{if('wakeLock' in navigator&&!wl&&document.visibilityState==='visible'){navigator.wakeLock.request('screen').then(function(l){wl=l;l.addEventListener('release',function(){wl=null;});}).catch(function(){});}}catch(e){}
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&(S.running||S.tab==='arbeitsweg'))wake();});
+function unlock(){if(S.settings.sound)audio();if(S.running)wake();}
+['touchend','click','keydown'].forEach(function(t){document.addEventListener(t,unlock,true);});
+
+/* ---------- Timer ---------- */
+function elapsed(){return (S.before+(S.running?Date.now()-S.startedAt:0))/1000;}
+function start(){audio();wake();if(!S.runDate)S.runDate=Date.now();S.running=true;S.startedAt=Date.now();save();renderWork();}
+function pause(){S.before+=Date.now()-S.startedAt;S.running=false;save();renderWork();}
+function goto(i,autostart){
+  var st=steps();if(i<0||i>=st.length)return;
+  var c=st[S.step];
+  if(c&&c.kind==='timed'){var e=elapsed();if(e>0)S.actual[c.id]=e;}
+  S.step=i;S.running=false;S.before=0;S.startedAt=0;fired.clear();
+  if(autostart)start();else{save();renderWork();}
+}
+function busy(){var c=steps()[S.step];return c.kind==='timed'&&S.running&&elapsed()<c.duration;}
+function partial(){var c=steps()[S.step],t=elapsed();return c.kind==='timed'&&!S.running&&t>0&&t<c.duration;}
+function nav(d,btn){
+  var j=S.step+d;if(j<0||j>=NSTEPS)return;
+  if(busy()){toast('Der Timer läuft. Erst pausieren.');return;}
+  if(partial()){
+    if(btn)confirmBtn(btn,'nav'+d,'Zeit verwerfen?',function(){goto(j,false);});
+    else toast('Schritt ist angefangen. Zum Wechseln den Knopf zweimal tippen.');
+    return;
+  }
+  goto(j,false);
+}
+function jump(j){
+  if(j===S.step)return;
+  if(busy()){toast('Der Timer läuft. Erst pausieren.');return;}
+  if(partial()){toast('Schritt ist angefangen ('+fmt(elapsed())+'). Erst „Zeit zurücksetzen“.');return;}
+  goto(j,false);
+}
+function fire(key,at,t,fn,win){if(fired.has(key))return;if(t>=at){fired.add(key);if(t-at<win)fn();}}
+function signals(c,t){
+  events(c).forEach(function(e){
+    if(e.kind==='fill')return;
+    var id=c.id+'|'+e.kind+'|'+e.at;
+    if(e.kind==='rot'||e.kind==='drain'){[3,2,1].forEach(function(p){fire(id+'|p'+p,e.at-p,t,function(){beep(660,0.08);},1.2);});}
+    fire(id+'|go',e.at,t,function(){
+      if(e.kind==='drain'){beep(520,0.3);beep(520,0.3,0.4);vib([250,100,250]);}
+      else{beep(1040,0.35);vib(200);}
+    },Math.max(1.2,e.end-e.at));
+  });
+  fire(c.id+'|end',c.duration,t,function(){beep(880,0.2);beep(880,0.2,0.3);beep(1180,0.45,0.6);vib([300,100,300,100,300]);},5);
+}
+
+/* ---------- Kleine Helfer ---------- */
+var toastT=0;
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true;},3200);}
+function disarm(){Object.keys(armed).forEach(function(k){clearTimeout(armed[k].t);delete armed[k];});}
+function confirmBtn(btn,key,label,fn){
+  if(armed[key]){clearTimeout(armed[key].t);delete armed[key];btn.classList.remove('armed');fn();return;}
+  var old=btn.textContent;btn.textContent=label;btn.classList.add('armed');
+  armed[key]={t:setTimeout(function(){delete armed[key];btn.textContent=old;btn.classList.remove('armed');if(key==='primary')tick();},3500)};
+}
+function setVal(id,v){var el=document.getElementById(id);if(el)el.value=v;}
+function protocol(){
+  var s=S.settings,d=new Date(S.runDate||Date.now()),tv=parseFloat(S.temp);
+  var L=['C-41 bei 30 °C – Adox C-TEC 41',
+    'Datum: '+d.toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}),
+    'Film dieser Chemie: '+filmRange()+(s.films===2?' (2 Filme im Tank)':''),
+    'Menge pro Bad: '+s.volume+' ml',
+    'DEV-Temperatur gemessen: '+(isFinite(tv)?dec(tv,1)+' °C':'nicht notiert'),
+    'Bewegung: '+moveTxt()];
+  steps().forEach(function(x){if(x.kind!=='timed')return;var a=S.actual[x.id];L.push(x.title+': Soll '+fmt(x.duration)+', Ist '+(a?fmt(a):'–'));});
+  if(S.notes.trim())L.push('Notizen: '+S.notes.trim());
+  return L.join('\n');
+}
+function newRun(){
+  var add=S.settings.films;
+  S.step=0;S.running=false;S.before=0;S.startedAt=0;S.checks={};S.actual={};S.heatStart=0;S.dryStart=0;S.temp='';S.notes='';S.runDate=0;
+  S.settings.filmNo=Math.min(99,S.settings.filmNo+add);fired.clear();save();renderWork();
+  toast('Nächster Durchgang: Film Nr. '+S.settings.filmNo+'. Entwicklerzeit aus der Adox-Tabelle eintragen.');
+}
+
+/* ---------- Ansichten ---------- */
+function updateSoundBtn(){
+  var sb=document.getElementById('soundBtn');sb.textContent=S.settings.sound?'Ton an':'Ton aus';sb.setAttribute('aria-pressed',String(S.settings.sound));
+  var cb=document.getElementById('set-sound');if(cb)cb.checked=S.settings.sound;
+}
+function renderInner(){
+  TABS.forEach(function(t){document.getElementById('tab-'+t).setAttribute('aria-selected',String(S.tab===t));});
+  view.className=S.tab==='arbeitsweg'?'is-work':'';
+  updateSoundBtn();
+  if(S.tab==='uebersicht')renderOverview();else if(S.tab==='packliste')renderPack();else renderWork();
+  tick();
+}
+function render(){
+  try{renderInner();}
+  catch(err){
+    try{localStorage.removeItem(KEY);}catch(e){}
+    S=load();renderInner();
+    toast('Der gespeicherte Stand war beschädigt und wurde zurückgesetzt.');
+  }
+}
+function setTab(t){if(TABS.indexOf(t)<0)return;S.tab=t;save();try{history.replaceState(null,'','#'+t);}catch(e){}view.scrollTop=0;render();}
+
+function ovDyn(){
+  var st=steps(),s=S.settings,timed=st.filter(function(x){return x.kind==='timed';});
+  var total=timed.reduce(function(a,b){return a+b.duration;},0);
+  return '<section class="intro"><div><p class="eyebrow">Ablaufplan</p><h1>C-41 bei 30 °C</h1>'+
+  '<p class="lede">Adox C-TEC 41 im Paterson-Doppeltank, Wasserbad mit dem CineStill TCS. Die Nasschemie dauert '+fmt(total)+' min, danach trocknet der Film 2–4 h.</p></div>'+
+  '<dl class="facts"><div><dt>Nasschemie</dt><dd>'+fmt(total)+'</dd></div><div><dt>Menge pro Bad</dt><dd>'+s.volume+' ml</dd></div><div><dt>Film dieser Chemie</dt><dd>'+filmRange()+'</dd></div></dl></section>'+
+  '<section><h2>Zeitstrahl der Nasschemie</h2><div class="strip">'+timed.map(function(x){return '<div class="seg b-'+x.bath+'" style="flex-grow:'+x.duration+'"><span class="seg-name">'+x.short+'</span><span class="seg-time">'+fmt(x.duration)+'</span></div>';}).join('')+
+  '</div><div class="strip-axis"><span>0:00</span><span>'+fmt(total)+'</span></div></section>'+
+  '<section><h2>Alle Schritte</h2><div class="tablewrap"><table><thead><tr><th>Schritt</th><th>Zeit</th><th>Temperatur</th><th>Bewegung</th><th>Danach wohin</th></tr></thead><tbody>'+
+  st.map(function(x,k){return '<tr class="b-'+x.bath+'"><td><span class="stepname"><b>'+(k+1)+'</b><i></i>'+x.title+'</span></td><td class="num">'+(x.kind==='timed'?fmt(x.duration):x.est)+'</td><td>'+(x.temp||'–')+'</td><td>'+(x.move||'–')+'</td><td>'+(x.pourTo||'–')+'</td></tr>';}).join('')+
+  '</tbody></table></div></section>';
+}
+function updateOverviewDyn(){var el=document.getElementById('ovDyn');if(el)el.innerHTML=ovDyn();}
+function renderOverview(){
+  disarm();
+  var s=S.settings;
+  view.innerHTML='<div class="page"><div class="ov-dyn" id="ovDyn">'+ovDyn()+'</div>'+
+  '<section class="two"><div><h2>Regeln</h2><ul class="rules">'+
+  '<li>Die Uhr startet mit Beginn des Eingießens. Laut Adox enthalten die Zeiten das Einfüllen und Ausgießen.</li>'+
+  '<li>Entwickler, Blix und Stabilisator gehen zurück in ihre Flaschen. In den Abfluss kommt nur Wasser.</li>'+
+  '<li>Becher und Trichter nie zwischen den Chemikalien tauschen. Wenige Tropfen Blix verderben den Entwickler.</li>'+
+  '<li>Die Temperatur in der Entwicklerflasche messen, nicht nur im Bad. Laut Adox ist die erste Entwicklerzeit kritisch.</li>'+
+  '<li>Zwischen den Bewegungen steht der Tank im Bad. Das Wasser bleibt unter dem Trichterdeckel, denn der Deckel ist nicht wasserdicht.</li>'+
+  '<li>Kipp-Tempo: Der Punkt im Kreis läuft eine Runde pro Kippen. Oben heißt Tank aufrecht, unten Kopf über.</li>'+
+  '<li>Handschuhe tragen und lüften.</li></ul></div>'+
+  '<div><h2>Einstellungen</h2><form class="settings" id="settingsForm" novalidate>'+
+  '<label class="field"><span>Entwicklerzeit (m:ss)</span><input type="text" id="set-dev" inputmode="numeric" value="'+fmt(s.devTime)+'"><span class="err" id="set-dev-err"></span></label>'+
+  '<label class="field"><span>Film Nr. dieser Chemie</span><input type="number" id="set-film" min="1" max="99" value="'+s.filmNo+'"></label>'+
+  '<label class="field"><span>Filme im Tank</span><select id="set-films"><option value="1"'+(s.films===1?' selected':'')+'>1 Film</option><option value="2"'+(s.films===2?' selected':'')+'>2 Filme</option></select></label>'+
+  '<label class="field wide"><span>Menge pro Bad</span><select id="set-vol"><option value="300"'+(s.volume===300?' selected':'')+'>300 ml – 1 Kleinbildfilm</option><option value="500"'+(s.volume===500?' selected':'')+'>500 ml – 2 Kleinbildfilme oder 1 Rollfilm</option></select></label>'+
+  '<label class="field"><span>Erst durchgehend (s)</span><input type="number" id="set-agi" min="0" max="60" value="'+s.agInitial+'"></label>'+
+  '<label class="field"><span>Rotation alle (s)</span><input type="number" id="set-agv" min="10" max="120" value="'+s.agInterval+'"></label>'+
+  '<label class="field"><span>Kippen pro Rotation</span><input type="number" id="set-agc" min="1" max="10" value="'+s.agCount+'"></label>'+
+  '<label class="field"><span>Tempo (s pro Kippen)</span><input type="number" id="set-agt" min="1" max="4" step="0.5" value="'+s.agTempo+'"></label>'+
+  '<label class="field check"><input type="checkbox" id="set-sound"'+(s.sound?' checked':'')+'><span>Signalton</span></label>'+
+  '<div class="set-actions"><button type="button" class="btn small" data-act="testsound">Ton testen</button><button type="button" class="btn small" data-act="defaults">Bewegung zurücksetzen</button></div>'+
+  '</form></div></section>'+
+  '<section><h2>Herkunft der Werte</h2><ul class="notes">'+
+  '<li>Die Zeiten bei 30 °C für den ersten Film stammen aus dem Adox-Datenblatt: Entwickler 8:00, Blix 6:00, Wässern 6:00, Stabilisator 1:00.</li>'+
+  '<li>Ab Film 2 verlängert Adox die Entwicklerzeit nach einer Tabelle im Datenblatt, getrennt für 500 ml und 1000 ml Ansatz. Trag die Zeit oben ein. Bei 2 Filmen im Tank zählt jeder Film einzeln.</li>'+
+  '<li>Das Bewegungsschema ist ein übliches C-41-Schema, keine Adox-Vorgabe. Steht im Datenblatt etwas anderes, stell es oben um.</li>'+
+  '<li>Vorwärmen, Wasserwechsel pro Minute, 28–32 °C beim Wässern und das Kipp-Tempo von 2 s sind Empfehlungen, keine Adox-Vorgabe.</li>'+
+  '<li>Laut Adox soll das Bad während der Entwicklung höchstens 1 °C abkühlen. Das TCS hält die Temperatur.</li></ul></section>'+
+  '<div class="cta"><button class="btn" data-act="tab" data-tab="packliste">Zur Packliste</button><button class="btn primary" data-act="tab" data-tab="arbeitsweg">Arbeitsweg öffnen</button></div>'+
+  '</div>';
+}
+
+function renderPack(){
+  disarm();
+  view.innerHTML='<div class="page">'+
+  '<section class="pack-head"><div><p class="eyebrow">Vor dem Start</p><h1>Packliste</h1></div>'+
+  '<div class="pack-progress"><span id="packCount"></span><div class="bar"><span id="packBar"></span></div></div>'+
+  '<button class="btn" data-act="packreset">Alle abwählen</button></section>'+
+  '<div class="packgrid">'+PACK.map(function(g){return '<section class="packgroup"><h3>'+g.g+'</h3><ul>'+g.items.map(function(it){return '<li><label><input type="checkbox" id="pk-'+it[0]+'" data-pk="'+it[0]+'"'+(S.pack[it[0]]?' checked':'')+'><span>'+it[1]+'</span></label></li>';}).join('')+'</ul></section>';}).join('')+'</div>'+
+  '<div class="cta"><button class="btn primary" data-act="tab" data-tab="arbeitsweg">Zum Arbeitsweg</button></div></div>';
+  updatePackCount();
+}
+function updatePackCount(){
+  var all=0,on=0;PACK.forEach(function(g){g.items.forEach(function(it){all++;if(S.pack[it[0]])on++;});});
+  var c=document.getElementById('packCount'),b=document.getElementById('packBar');
+  if(c)c.textContent=on+' von '+all+' bereit';
+  if(b)b.style.width=(all?on/all*100:0)+'%';
+}
+
+function extra(c){
+  var s=S.settings;
+  if(c.id==='measure'){
+    return '<div class="extra">'+
+      '<label class="field"><span>DEV gemessen (°C)</span><input type="number" id="temp" step="0.1" min="15" max="45" inputmode="decimal" placeholder="30.0" value="'+esc(S.temp)+'"></label>'+
+      '<label class="field"><span>Entwicklerzeit (m:ss)</span><input type="text" id="devInline" inputmode="numeric" value="'+fmt(s.devTime)+'"><span class="err" id="devInline-err"></span></label>'+
+      '<p class="hint" id="tempHint"></p></div>';
+  }
+  if(c.id==='clean'){
+    return '<div class="extra">'+
+      '<label class="field wide"><span>Notizen</span><textarea id="notes" rows="2" placeholder="Film, Kamera, Auffälligkeiten">'+esc(S.notes)+'</textarea></label>'+
+      '<div class="proto-box"><div class="proto-head"><span>Protokoll</span><button class="btn small" data-act="copy">Kopieren</button></div><pre id="proto">'+esc(protocol())+'</pre></div></div>';
+  }
+  return '';
+}
+
+function renderWork(){
+  disarm();
+  var st=steps(),i=Math.min(S.step,st.length-1),c=st[i],n=st[i+1];
+  S.step=i;
+  var later=st.slice(i+2);
+  view.innerHTML='<div class="work">'+
+  '<nav class="road" aria-label="Fortschritt">'+st.map(function(x,k){
+     return '<button class="stop b-'+x.bath+(k<i?' done':k===i?' now':'')+'" data-act="jump" data-i="'+k+'"'+(k===i?' aria-current="step"':'')+'><span class="dot"></span><span class="lbl">'+x.short+'</span>'+(x.kind==='timed'?'<span class="dur" data-dur="'+x.id+'">'+fmt(x.duration)+'</span>':'')+'</button>';
+  }).join('')+'</nav>'+
+  '<section class="now-panel b-'+c.bath+'" aria-label="Aktueller Schritt">'+
+   '<p class="portrait-hint">Im Querformat siehst du alles auf einen Blick.</p>'+
+   '<div class="now-head"><span class="chip b-'+c.bath+'"><i></i>'+c.chip+'</span><span class="stepno">Schritt '+(i+1)+' von '+st.length+'</span></div>'+
+   '<h2 class="now-title">'+c.title+'</h2>'+
+   '<div class="now-grid">'+
+     '<div class="clock" id="clock"><div class="clock-lbl" id="clockLbl"></div><div class="clock-val" id="clockVal" aria-live="off">–:––</div><div class="bar"><span id="stepBar"></span></div></div>'+
+     '<div class="cue" id="cue"><div class="cue-body"><div class="cue-text"><div class="cue-main" id="cueMain"></div><div class="cue-detail" id="cueDetail"></div></div>'+
+       (c.kind==='timed'?'<div class="metro idle" id="metro" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="metro-track" cx="50" cy="50" r="38"></circle><g id="metroRot"><circle class="metro-dot" cx="50" cy="12" r="9"></circle></g><text class="metro-num" id="metroNum" x="50" y="50" text-anchor="middle" dominant-baseline="central"></text></svg><span class="metro-cap">1 Runde = 1× kippen</span></div>':'')+'</div>'+
+       '<div class="rot" id="rotWrap"><div class="rot-row"><span id="rotLbl"></span><span class="mono" id="rotVal"></span></div><div class="bar"><span id="rotBar"></span></div><div class="rot-count" id="rotCount"></div></div></div>'+
+   '</div>'+ extra(c)+
+   '<ul class="todo'+(c.kind==='prep'?' check':'')+'">'+c.todo.map(function(t,k){
+     if(c.kind==='prep'){var key=c.id+'-'+k;return '<li><label><input type="checkbox" id="ck-'+key+'" data-ck="'+key+'"'+(S.checks[key]?' checked':'')+'><span>'+t+'</span></label></li>';}
+     return '<li>'+t+'</li>';
+   }).join('')+'</ul>'+
+   '<div class="controls">'+
+     '<button class="btn" data-act="prev"'+(i===0?' disabled':'')+'>Zurück</button>'+
+     '<button class="btn big primary" id="primary" data-act="primary"></button>'+
+     '<button class="btn" data-act="next"'+(i===st.length-1?' disabled':'')+'>Überspringen</button>'+
+     (c.kind==='timed'?'<button class="btn" data-act="reset">Zeit zurücksetzen</button>':'')+
+   '</div>'+
+  '</section>'+
+  '<aside class="next-panel" aria-label="Nächster Schritt">'+
+   '<p class="eyebrow">Als Nächstes</p>'+
+   (n?'<div class="next-card b-'+n.bath+'"><span class="chip b-'+n.bath+'"><i></i>'+n.chip+'</span><h3>'+n.title+'</h3>'+
+      '<p class="next-dur">'+(n.kind==='timed'?'<span data-dur="'+n.id+'">'+fmt(n.duration)+'</span> min · '+n.temp:n.est)+'</p>'+
+      (n.prepare.length?'<p class="mini">Jetzt bereitlegen</p><ul>'+n.prepare.map(function(p){return '<li>'+p+'</li>';}).join('')+'</ul>':'')+
+      (n.pourTo?'<p class="pour">Danach: '+n.pourTo+'</p>':'')+'</div>'
+     :'<div class="next-card b-prep"><h3>Letzter Schritt</h3><p class="pour">Danach ist der Durchgang fertig. „Neuer Durchgang“ zählt die Filmnummer hoch.</p></div>')+
+   '<div class="eta" id="eta"></div>'+
+   (later.length?'<p class="eyebrow">Danach</p><ol class="later">'+later.map(function(x){return '<li class="b-'+x.bath+'"><i></i><span>'+x.title+'</span><span class="mono"'+(x.kind==='timed'?' data-dur="'+x.id+'">'+fmt(x.duration):'>')+'</span></li>';}).join('')+'</ol>':'')+
+  '</aside></div>';
+  updateTempHint();
+  tick();
+}
+function refreshDurations(){
+  var st=steps();
+  document.querySelectorAll('[data-dur]').forEach(function(el){var x=st[stepIndex(el.getAttribute('data-dur'))];if(x){var v=fmt(x.duration);if(el.textContent!==v)el.textContent=v;}});
+}
+
+function updateTempHint(){
+  var h=document.getElementById('tempHint');if(!h)return;
+  var v=parseFloat(S.temp);
+  if(!isFinite(v)){h.className='hint';h.textContent='Wert eintragen, er kommt ins Protokoll.';return;}
+  var d=Math.round((v-30)*10)/10;
+  if(Math.abs(d)<=0.3){h.className='hint ok';h.textContent='Passt. Abweichung höchstens 0,3 °C.';}
+  else{h.className='hint warn';h.textContent=(d>0?'Zu warm':'Zu kalt')+' um '+dec(Math.abs(d),1)+' °C. Warten, bis der Entwickler 30 °C hat.';}
+}
+function updateProto(){var p=document.getElementById('proto');if(p)p.textContent=protocol();}
+
+function primaryLabel(st,i,t){
+  var c=st[i],n=st[i+1];
+  if(!n)return 'Neuer Durchgang';
+  if(c.kind==='timed'){
+    if(t>=c.duration)return n.kind==='timed'?n.title+' starten':'Weiter: '+n.title;
+    if(S.running)return 'Pause';
+    return t>0?'Fortsetzen':'Start – jetzt eingießen';
+  }
+  if(c.id==='heat')return S.heatStart?'Weiter: Film einspulen':'Heizen läuft – weiter';
+  if(c.id==='hang')return 'Hängt – weiter';
+  return 'Erledigt – weiter';
+}
+function primary(btn){
+  audio();
+  var st=steps(),i=S.step,c=st[i],n=st[i+1];
+  if(!n){confirmBtn(btn,'primary','Wirklich neu beginnen?',newRun);return;}
+  if(c.kind==='timed'){
+    var t=elapsed();
+    if(t>=c.duration){goto(i+1,n.kind==='timed');return;}
+    if(S.running)pause();else start();
+    return;
+  }
+  if(c.id==='heat'&&!S.heatStart)S.heatStart=Date.now();
+  if(c.id==='hang'&&!S.dryStart)S.dryStart=Date.now();
+  wake();
+  goto(i+1,false);
+}
+
+/* ---------- Takt ---------- */
+function setText(id,txt){var el=document.getElementById(id);if(el&&el.textContent!==txt)el.textContent=txt;}
+function tick(){
+  var st=steps(),i=S.step,c=st[i],n=st[i+1],t=elapsed();
+  if(!c)return;
+  if(c.kind==='timed'&&S.running)signals(c,t);
+
+  var chip=document.getElementById('heatChip');
+  if(S.heatStart&&i<stepIndex('dev')){chip.hidden=false;var ht='<i></i>Bad heizt seit '+fmt((Date.now()-S.heatStart)/1000);if(chip.innerHTML!==ht)chip.innerHTML=ht;}else chip.hidden=true;
+  var rc=document.getElementById('runChip');
+  if(c.kind==='timed'&&S.running&&S.tab!=='arbeitsweg'){
+    rc.hidden=false;rc.className='chip b-'+c.bath;
+    var rt='<i></i>'+c.title+' · '+(t<c.duration?fmt(Math.ceil(c.duration-t)):'fertig');
+    if(rc.innerHTML!==rt)rc.innerHTML=rt;
+  }else rc.hidden=true;
+  document.getElementById('soundWarn').hidden=!(S.running&&S.settings.sound&&(!ac||ac.state!=='running'));
+
+  if(S.tab!=='arbeitsweg')return;
+  var cue=document.getElementById('cue');if(!cue)return;
+  var clock=document.getElementById('clock'),rotWrap=document.getElementById('rotWrap'),stepBar=document.getElementById('stepBar'),rotBar=document.getElementById('rotBar');
+  var tone='rest';
+  if(c.kind==='timed'){
+    var D=c.duration,E=events(c);
+    clock.classList.toggle('over',t>=D);
+    setText('clockVal',t<D?fmt(Math.ceil(D-t)):'+'+fmt(t-D));
+    setText('clockLbl',t>=D?'Über der Zeit':S.running?'Restzeit':t>0?'Pausiert':'Bereit – Start beim Eingießen');
+    stepBar.style.width=Math.min(100,t/D*100)+'%';
+    var rots=E.filter(function(e){return e.kind==='rot';});
+    var rotDone=rots.filter(function(e){return e.at<=t;}).length;
+    var cntTxt=rots.length?(c.mode==='wash'?'Wasserwechsel ':'Rotation ')+rotDone+' von '+rots.length:'';
+    if(t>=D){
+      tone='done';rotWrap.hidden=true;
+      setText('cueMain','Fertig');
+      setText('cueDetail',n?(n.kind==='timed'?'Tank leer? Dann '+n.title+' starten, sobald du eingießt.':'Weiter zum nächsten Schritt.'):'');
+    }else if(t===0&&!S.running){
+      tone='ready';rotWrap.hidden=false;
+      setText('cueMain','Bereit');setText('cueDetail','Start drücken, sobald du eingießt. Bewegung: '+c.move+'.');
+      setText('rotLbl',rots.length?(c.mode==='wash'?'Wasserwechsel geplant':'Rotationen geplant'):'Dauer');
+      setText('rotVal',rots.length?String(rots.length):fmt(D));
+      rotBar.style.width='0%';setText('rotCount','');
+    }else{
+      rotWrap.hidden=false;
+      var act=null;E.forEach(function(e){if(t>=e.at&&t<e.end)act=e;});
+      var nxt=null;for(var k=0;k<E.length;k++){if(E[k].at>t&&(E[k].kind==='rot'||E[k].kind==='drain')){nxt=E[k];break;}}
+      if(act){
+        tone=act.kind;
+        setText('cueMain',act.cue);setText('cueDetail',(S.running?'':'Pausiert. ')+act.detail);
+        var lbl=act.kind==='rot'?(c.mode==='wash'?'Wechseln – noch':'Kippen – noch'):act.kind==='drain'?'Ausgießen – noch':act.kind==='fill'?'Einfüllen – noch':'Noch';
+        setText('rotLbl',lbl);setText('rotVal',fmt(Math.ceil(act.end-t)));
+        rotBar.style.width=Math.min(100,(t-act.at)/(act.end-act.at)*100)+'%';
+      }else{
+        var r=REST[c.mode];
+        setText('cueMain',r[0]);setText('cueDetail',(S.running?'':'Pausiert. ')+r[1]);
+        if(nxt){
+          var prev=0;E.forEach(function(e){if(e.end<=t&&e.end>prev)prev=e.end;});
+          setText('rotLbl',nxt.kind==='drain'?'Ausgießen in':(c.mode==='wash'?'Nächster Wasserwechsel in':'Nächste Rotation in'));
+          setText('rotVal',fmt(Math.ceil(nxt.at-t)));
+          rotBar.style.width=Math.min(100,Math.max(0,(t-prev)/(nxt.at-prev)*100))+'%';
+        }
+      }
+      setText('rotCount',cntTxt);
+    }
+  }else{
+    rotWrap.hidden=true;clock.classList.remove('over');
+    var total=c.todo.length,on=0;for(var j=0;j<total;j++)if(S.checks[c.id+'-'+j])on++;
+    stepBar.style.width=(total?on/total*100:0)+'%';
+    tone=on===total?'done':'rest';
+    setText('cueMain',on===total?'Alles erledigt':on+' von '+total+' erledigt');
+    setText('cueDetail',on===total?'Weiter zum nächsten Schritt.':'Abhaken, dann weiter.');
+    if((c.id==='load'||c.id==='measure'||c.id==='heat')&&S.heatStart){setText('clockLbl','Bad heizt seit');setText('clockVal',fmt((Date.now()-S.heatStart)/1000));}
+    else if(c.id==='clean'&&S.dryStart){setText('clockLbl','Film trocknet seit (2–4 h)');setText('clockVal',fmt((Date.now()-S.dryStart)/1000));}
+    else if(c.id==='heat'){setText('clockLbl','Aufheizen: 30–45 min');setText('clockVal','–:––');}
+    else{setText('clockLbl',c.est||'Ohne Zeitvorgabe');setText('clockVal','–:––');}
+  }
+  var cls='cue is-'+tone;if(cue.className!==cls)cue.className=cls;
+  var pb=document.getElementById('primary');
+  if(pb&&!armed.primary){
+    var lab=primaryLabel(st,i,t);if(pb.textContent!==lab)pb.textContent=lab;
+    pb.classList.toggle('primary',!(c.kind==='timed'&&S.running&&t<c.duration));
+  }
+  var rem=0;if(c.kind==='timed')rem+=Math.max(0,c.duration-t);
+  st.slice(i+1).forEach(function(x){if(x.kind==='timed')rem+=x.duration;});
+  var eta=document.getElementById('eta');
+  if(eta){
+    if(rem>0){
+      var at=new Date(Date.now()+rem*1000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+      var pre=(c.kind!=='timed'||(t===0&&!S.running))?'Bei Start jetzt ist die Nasschemie fertig um ':'Nasschemie fertig um ';
+      var html=pre+'<b>'+at+'</b> · noch '+fmt(rem)+' min';
+      if(eta.innerHTML!==html)eta.innerHTML=html;
+    }else if(eta.innerHTML!=='')eta.innerHTML='';
+  }
+}
+
+/* ---------- Takt-Kreis ---------- */
+function metroFrame(){
+  requestAnimationFrame(metroFrame);
+  if(S.tab!=='arbeitsweg')return;
+  var m=document.getElementById('metro');if(!m)return;
+  var c=steps()[S.step];if(!c||c.kind!=='timed')return;
+  var t=elapsed(),act=null;
+  if(t<c.duration)events(c).forEach(function(e){if(t>=e.at&&t<e.end)act=e;});
+  var g=document.getElementById('metroRot'),num=document.getElementById('metroNum');
+  if(act&&act.spin){
+    var p=(t-act.at)/S.settings.agTempo,k=Math.min(act.spin,Math.floor(p)+1),txt=k+'/'+act.spin;
+    g.setAttribute('transform','rotate('+((p%1)*360).toFixed(1)+' 50 50)');
+    if(num.textContent!==txt)num.textContent=txt;
+    m.classList.remove('idle');
+  }else{
+    g.setAttribute('transform','rotate(0 50 50)');
+    if(num.textContent!=='')num.textContent='';
+    m.classList.add('idle');
+  }
+}
+
+/* ---------- Ereignisse ---------- */
+var NUMS={'set-film':['filmNo',1,99],'set-agi':['agInitial',0,60],'set-agv':['agInterval',10,120],'set-agc':['agCount',1,10],'set-agt':['agTempo',1,4,true]};
+function refreshDynamic(){if(S.tab==='uebersicht')updateOverviewDyn();else if(S.tab==='arbeitsweg')refreshDurations();tick();}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');if(!b)return;
+  var a=b.dataset.act;
+  if(a==='tab'){setTab(b.dataset.tab);return;}
+  if(a==='sound'){S.settings.sound=!S.settings.sound;save();if(S.settings.sound){audio();beep(880,0.12);}updateSoundBtn();tick();return;}
+  if(a==='unlock'){audio();wake();setTimeout(tick,50);return;}
+  if(a==='primary'){primary(b);return;}
+  if(a==='prev'||a==='next'){nav(a==='prev'?-1:1,b);return;}
+  if(a==='jump'){jump(Number(b.dataset.i));return;}
+  if(a==='reset'){confirmBtn(b,'reset','Wirklich zurücksetzen?',function(){S.running=false;S.before=0;S.startedAt=0;fired.clear();save();renderWork();});return;}
+  if(a==='testsound'){audio();beep(660,0.08,0,true);beep(660,0.08,0.25,true);beep(1040,0.35,0.5,true);vib(200);return;}
+  if(a==='defaults'){var s=S.settings;S.settings=Object.assign({},DEF,{filmNo:s.filmNo,films:s.films,volume:s.volume,devTime:s.devTime,sound:s.sound});save();renderOverview();toast('Bewegung auf Standard zurückgesetzt.');return;}
+  if(a==='packreset'){confirmBtn(b,'packreset','Wirklich alles abwählen?',function(){S.pack={};save();renderPack();});return;}
+  if(a==='copy'){
+    var txt=protocol(),pre=document.getElementById('proto');
+    var sel=function(){try{var r=document.createRange();r.selectNodeContents(pre);var w=window.getSelection();w.removeAllRanges();w.addRange(r);toast('Text markiert. Jetzt kopieren.');}catch(x){}};
+    try{navigator.clipboard.writeText(txt).then(function(){toast('Protokoll kopiert.');},sel);}catch(x){sel();}
+    return;
+  }
+});
+document.addEventListener('change',function(e){
+  var el=e.target,s=S.settings;
+  if(el.dataset.pk){S.pack[el.dataset.pk]=el.checked;save();updatePackCount();return;}
+  if(el.dataset.ck){S.checks[el.dataset.ck]=el.checked;save();tick();return;}
+  if(el.id==='set-dev'||el.id==='devInline'){
+    var v=parseTime(el.value),err=document.getElementById(el.id+'-err');
+    if(v&&v>=60&&v<=1800){s.devTime=v;save();el.value=fmt(v);if(err)err.textContent='';refreshDynamic();}
+    else if(err)err.textContent='Bitte als m:ss eingeben, zum Beispiel 8:00.';
+    return;
+  }
+  var spec=NUMS[el.id];
+  if(spec){
+    var raw=String(el.value).trim().replace(',','.');
+    if(raw===''||!isFinite(Number(raw))){el.value=s[spec[0]];return;}
+    s[spec[0]]=spec[3]?clampHalf(raw,spec[1],spec[2]):clamp(raw,spec[1],spec[2]);
+    el.value=s[spec[0]];
+  }else if(el.id==='set-vol'){s.volume=el.value==='300'?300:500;if(s.volume===300){s.films=1;setVal('set-films','1');}}
+  else if(el.id==='set-films'){s.films=el.value==='2'?2:1;if(s.films===2&&s.volume===300){s.volume=500;setVal('set-vol','500');}}
+  else if(el.id==='set-sound'){s.sound=el.checked;save();updateSoundBtn();tick();return;}
+  else return;
+  save();refreshDynamic();
+});
+document.addEventListener('input',function(e){
+  if(e.target.id==='temp'){S.temp=e.target.value;save();updateTempHint();}
+  if(e.target.id==='notes'){S.notes=e.target.value;save();updateProto();}
+});
+document.addEventListener('submit',function(e){e.preventDefault();});
+document.addEventListener('keydown',function(e){
+  if(S.tab!=='arbeitsweg')return;
+  var tg=e.target.tagName;if(tg==='INPUT'||tg==='TEXTAREA'||tg==='SELECT')return;
+  if(e.code==='Space'){
+    var inTop=e.target.closest&&e.target.closest('.top');
+    if(tg==='BUTTON'&&!inTop)return;
+    e.preventDefault();if(e.repeat)return;
+    var p=document.getElementById('primary');if(p)p.click();
+  }else if(e.key==='ArrowRight'){if(!e.repeat)nav(1);}
+  else if(e.key==='ArrowLeft'){if(!e.repeat)nav(-1);}
+});
+window.addEventListener('hashchange',function(){var h=location.hash.slice(1);if(TABS.indexOf(h)>=0&&h!==S.tab)setTab(h);});
+
+var h=(location.hash||'').slice(1);if(TABS.indexOf(h)>=0)S.tab=h;
+render();
+setInterval(tick,200);
+requestAnimationFrame(metroFrame);
+})();
+</script>
+</body>
+</html>
