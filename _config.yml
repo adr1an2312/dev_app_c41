@@ -1,0 +1,5 @@
+# GitHub Pages veröffentlicht nur die App.
+# Ordner und Dateien, die mit einem Punkt beginnen (.claude, .gitignore, ...), lässt Jekyll ohnehin weg.
+exclude:
+  - README.md
+  - .taste-skill
