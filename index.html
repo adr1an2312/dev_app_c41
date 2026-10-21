@@ -123,6 +123,7 @@ td.num{font-family:var(--f-body);font-variant-numeric:tabular-nums;white-space:n
 .cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none;margin:0}
 
+.logopen{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--ink);border-radius:8px;padding:14px 16px}
 .pack-head{display:flex;align-items:flex-end;gap:16px 24px;flex-wrap:wrap}
 .pack-progress{flex:1 1 220px;display:grid;gap:6px;font-weight:700}
 .packgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
@@ -270,6 +271,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none
       <button role="tab" id="tab-uebersicht" data-act="tab" data-tab="uebersicht">Übersicht</button>
       <button role="tab" id="tab-packliste" data-act="tab" data-tab="packliste">Packliste</button>
       <button role="tab" id="tab-arbeitsweg" data-act="tab" data-tab="arbeitsweg">Arbeitsweg</button>
+      <button role="tab" id="tab-logbuch" data-act="tab" data-tab="logbuch">Logbuch</button>
     </nav>
     <div class="top-right">
       <button id="runChip" class="chip b-dev" data-act="tab" data-tab="arbeitsweg" hidden></button>
@@ -287,7 +289,8 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none
 'use strict';
 var KEY='c41-ablauf-30-v1';
 var DEF={devTime:480,filmNo:1,films:1,volume:500,agInitial:10,agInterval:30,agCount:4,agTempo:2,sound:true};
-var TABS=['uebersicht','packliste','arbeitsweg'];
+var TABS=['uebersicht','packliste','arbeitsweg','logbuch'];
+var LOGKEY='c41-logbuch-v1';
 var NSTEPS=10;
 var S=load();
 var fired=new Set();
@@ -545,8 +548,90 @@ function protocol(){
   if(S.notes.trim())L.push('Notizen: '+S.notes.trim());
   return L.join('\n');
 }
+/* ---------- Logbuch ---------- */
+var TIMED=['prewarm','dev','blix','wash','stab'];
+function loadLog(){try{var l=JSON.parse(localStorage.getItem(LOGKEY)||'[]');return Array.isArray(l)?l.filter(function(e){return e&&e.id;}):[];}catch(e){return [];}}
+function saveLog(l){try{localStorage.setItem(LOGKEY,JSON.stringify(l));return true;}catch(e){toast('Speichern nicht möglich. Bitte als CSV exportieren.');return false;}}
+function hasOpenRun(){return TIMED.some(function(k){return S.actual[k]>0;});}
+function runId(){return String(S.runDate||Date.now());}
+function isSaved(){var id=runId();return loadLog().some(function(e){return e.id===id;});}
+function currentEntry(){
+  var s=S.settings,a={};TIMED.forEach(function(k){if(S.actual[k]>0)a[k]=Math.round(S.actual[k]);});
+  return {id:runId(),date:S.runDate||Date.now(),filmNo:s.filmNo,films:s.films,volume:s.volume,temp:S.temp,devTime:s.devTime,move:moveTxt(),actual:a,notes:S.notes};
+}
+function saveRun(quiet){
+  if(!hasOpenRun())return;
+  if(!S.runDate){S.runDate=Date.now();save();}
+  var l=loadLog(),e=currentEntry(),i=-1;
+  l.forEach(function(x,k){if(x.id===e.id)i=k;});
+  if(i>=0)l[i]=e;else l.unshift(e);
+  if(saveLog(l)&&!quiet)toast('Durchgang im Logbuch gespeichert.');
+}
+function csvCell(v){v=v==null?'':String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+var CSVCOLS=['id','datum','film_nr','filme','menge_ml','dev_temp_c','dev_soll','vorwaermen_ist','dev_ist','blix_ist','waessern_ist','stab_ist','bewegung','notizen'];
+function toCsv(l){
+  var rows=[CSVCOLS.join(';')];
+  l.forEach(function(e){var a=e.actual||{};rows.push([e.id,new Date(e.date).toISOString(),e.filmNo,e.films,e.volume,e.temp,fmt(e.devTime),a.prewarm?fmt(a.prewarm):'',a.dev?fmt(a.dev):'',a.blix?fmt(a.blix):'',a.wash?fmt(a.wash):'',a.stab?fmt(a.stab):'',e.move,e.notes].map(csvCell).join(';'));});
+  return '\ufeff'+rows.join('\r\n');
+}
+function parseCsv(txt){
+  txt=txt.replace(/^\ufeff/,'');var rows=[],row=[],cell='',q=false;
+  for(var i=0;i<txt.length;i++){var ch=txt[i];
+    if(q){if(ch==='"'){if(txt[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=ch;}
+    else if(ch==='"')q=true;else if(ch===';'){row.push(cell);cell='';}
+    else if(ch==='\n'){row.push(cell);rows.push(row);row=[];cell='';}
+    else if(ch!=='\r')cell+=ch;}
+  if(cell||row.length){row.push(cell);rows.push(row);}
+  var head=rows.shift()||[],out=[];
+  function ix(n){return head.indexOf(n);}
+  function sec(v){var t=parseTime(v||'');return t||0;}
+  rows.forEach(function(r){var id=r[ix('id')];if(!id)return;
+    var a={};[['prewarm','vorwaermen_ist'],['dev','dev_ist'],['blix','blix_ist'],['wash','waessern_ist'],['stab','stab_ist']].forEach(function(m){var v=sec(r[ix(m[1])]);if(v)a[m[0]]=v;});
+    var d=Date.parse(r[ix('datum')]);
+    out.push({id:id,date:isFinite(d)?d:Number(id)||Date.now(),filmNo:Number(r[ix('film_nr')])||1,films:Number(r[ix('filme')])===2?2:1,volume:Number(r[ix('menge_ml')])===300?300:500,temp:r[ix('dev_temp_c')]||'',devTime:sec(r[ix('dev_soll')])||480,move:r[ix('bewegung')]||'',actual:a,notes:r[ix('notizen')]||''});});
+  return out;
+}
+function exportCsv(){
+  var l=loadLog();if(!l.length){toast('Das Logbuch ist noch leer.');return;}
+  var blob=new Blob([toCsv(l)],{type:'text/csv;charset=utf-8'}),name='c41-logbuch-'+new Date().toISOString().slice(0,10)+'.csv';
+  try{
+    var f=new File([blob],name,{type:'text/csv'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'C-41 Logbuch'}).catch(function(){});return;}
+  }catch(e){}
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1000);
+}
+function importCsv(file){
+  var r=new FileReader();
+  r.onload=function(){
+    var add=parseCsv(String(r.result)),l=loadLog(),ids={},n=0;
+    l.forEach(function(e){ids[e.id]=1;});
+    add.forEach(function(e){if(!ids[e.id]){l.push(e);n++;}});
+    l.sort(function(x,y){return y.date-x.date;});
+    if(saveLog(l)){toast(n+' Durchgänge importiert.');renderLog();}
+  };
+  r.readAsText(file);
+}
+function renderLog(){
+  disarm();
+  var l=loadLog(),open=hasOpenRun()&&!isSaved();
+  function d(t){return new Date(t).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'});}
+  function tv(v){var x=parseFloat(v);return isFinite(x)?dec(x,1)+' °C':'–';}
+  function ist(e,k){var v=(e.actual||{})[k];return v?fmt(v):'–';}
+  view.innerHTML='<div class="page">'+
+  '<section class="pack-head"><div><h1>Logbuch</h1><p class="lede">Jeder Durchgang wird nur auf diesem Gerät gespeichert. Exportiere ab und zu eine CSV als Sicherung.</p></div>'+
+  '<div class="cta"><label class="btn" for="csvIn">CSV importieren</label><input type="file" id="csvIn" accept=".csv,text/csv" hidden><button class="btn primary" data-act="export">Als CSV exportieren</button></div></section>'+
+  (open?'<section class="logopen"><div><b>Offener Durchgang vom '+d(S.runDate||Date.now())+'</b><p class="lede">Film Nr. '+S.settings.filmNo+', DEV '+tv(S.temp)+', Entwickler Ist '+(S.actual.dev?fmt(S.actual.dev):'–')+'. Noch nicht im Logbuch.</p></div><button class="btn primary" data-act="saverun">Ins Logbuch speichern</button></section>':'')+
+  (l.length?'<div class="tablewrap"><table><thead><tr><th>Datum</th><th>Film</th><th>DEV-Temp.</th><th>Entwickler Soll</th><th>Entwickler Ist</th><th>Blix Ist</th><th>Wässern Ist</th><th>Notizen</th><th></th></tr></thead><tbody>'+
+    l.map(function(e){return '<tr><td>'+d(e.date)+'</td><td class="num">Nr. '+e.filmNo+(e.films===2?'–'+(e.filmNo+1):'')+'</td><td class="num">'+tv(e.temp)+'</td><td class="num">'+fmt(e.devTime)+'</td><td class="num">'+ist(e,'dev')+'</td><td class="num">'+ist(e,'blix')+'</td><td class="num">'+ist(e,'wash')+'</td><td>'+esc(e.notes||'')+'</td><td><button class="btn small" data-act="dellog" data-id="'+esc(e.id)+'">Löschen</button></td></tr>';}).join('')+
+    '</tbody></table></div>'
+   :'<p class="lede">Noch keine Durchgänge. Nach dem Protokoll-Schritt speichert „Neuer Durchgang“ den Durchgang automatisch hier.</p>')+
+  '</div>';
+}
+
 function newRun(){
   var add=S.settings.films;
+  saveRun(true);
   S.step=0;S.running=false;S.before=0;S.startedAt=0;S.checks={};S.actual={};S.heatStart=0;S.dryStart=0;S.temp='';S.notes='';S.runDate=0;
   S.settings.filmNo=Math.min(99,S.settings.filmNo+add);fired.clear();save();renderWork();
   toast('Nächster Durchgang: Film Nr. '+S.settings.filmNo+'. Entwicklerzeit aus der Adox-Tabelle eintragen.');
@@ -561,7 +646,7 @@ function renderInner(){
   TABS.forEach(function(t){document.getElementById('tab-'+t).setAttribute('aria-selected',String(S.tab===t));});
   view.className=S.tab==='arbeitsweg'?'is-work':'';
   updateSoundBtn();
-  if(S.tab==='uebersicht')renderOverview();else if(S.tab==='packliste')renderPack();else renderWork();
+  if(S.tab==='uebersicht')renderOverview();else if(S.tab==='packliste')renderPack();else if(S.tab==='logbuch')renderLog();else renderWork();
   tick();
 }
 function render(){
@@ -649,7 +734,7 @@ function extra(c){
   if(c.id==='clean'){
     return '<div class="extra">'+
       '<label class="field wide"><span>Notizen</span><textarea id="notes" rows="2" placeholder="Film, Kamera, Auffälligkeiten">'+esc(S.notes)+'</textarea></label>'+
-      '<div class="proto-box"><div class="proto-head"><span>Protokoll</span><button class="btn small" data-act="copy">Kopieren</button></div><pre id="proto">'+esc(protocol())+'</pre></div></div>';
+      '<div class="proto-box"><div class="proto-head"><span>Protokoll</span><span><button class="btn small" data-act="saverun">Ins Logbuch</button> <button class="btn small" data-act="copy">Kopieren</button></span></div><pre id="proto">'+esc(protocol())+'</pre></div></div>';
   }
   return '';
 }
@@ -899,6 +984,9 @@ document.addEventListener('click',function(e){
   if(a==='testsound'){audio();beep(660,0.08,0,true);beep(660,0.08,0.25,true);beep(1040,0.35,0.5,true);vib(200);return;}
   if(a==='defaults'){var s=S.settings;S.settings=Object.assign({},DEF,{filmNo:s.filmNo,films:s.films,volume:s.volume,devTime:s.devTime,sound:s.sound});save();renderOverview();toast('Bewegung auf Standard zurückgesetzt.');return;}
   if(a==='packreset'){confirmBtn(b,'packreset','Wirklich alles abwählen?',function(){S.pack={};save();renderPack();});return;}
+  if(a==='saverun'){saveRun(false);if(S.tab==='logbuch')renderLog();return;}
+  if(a==='export'){exportCsv();return;}
+  if(a==='dellog'){var id=b.dataset.id;confirmBtn(b,'del'+id,'Wirklich?',function(){saveLog(loadLog().filter(function(e){return e.id!==id;}));renderLog();});return;}
   if(a==='copy'){
     var txt=protocol(),pre=document.getElementById('proto');
     var sel=function(){try{var r=document.createRange();r.selectNodeContents(pre);var w=window.getSelection();w.removeAllRanges();w.addRange(r);toast('Text markiert. Jetzt kopieren.');}catch(x){}};
@@ -908,6 +996,7 @@ document.addEventListener('click',function(e){
 });
 document.addEventListener('change',function(e){
   var el=e.target,s=S.settings;
+  if(el.id==='csvIn'){if(el.files&&el.files[0])importCsv(el.files[0]);return;}
   if(el.dataset.pk){S.pack[el.dataset.pk]=el.checked;save();updatePackCount();return;}
   if(el.dataset.ck){S.checks[el.dataset.ck]=el.checked;save();tick();return;}
   if(el.id==='set-dev'||el.id==='devInline'){
