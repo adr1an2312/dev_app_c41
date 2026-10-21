@@ -133,7 +133,18 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none
 .packgroup input:checked+span{color:var(--muted)}
 
 /* Arbeitsweg */
-.work{height:100%;display:grid;grid-template-columns:112px minmax(0,1fr) minmax(220px,.5fr);gap:14px}
+.work{height:100%;display:grid;grid-template-columns:112px minmax(0,1fr) minmax(220px,.5fr);grid-template-rows:auto minmax(0,1fr);gap:14px}
+.lab{grid-column:1/-1;display:flex;align-items:center;gap:20px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 16px;min-width:0}
+.lab svg{height:92px;width:auto;flex:none;display:block}
+.lab .part{transition:opacity .2s}
+.lab .part.off{opacity:.25}
+.lab .lab-line{stroke:var(--ink);stroke-width:1.5;fill:none}
+.lab .lab-bath{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.lab .lab-on .lab-bath{stroke:var(--ink)}
+.lab text{fill:var(--ink);font-size:11px;font-family:var(--f-body)}
+.lab-cap{display:grid;gap:4px;min-width:0}
+.lab-cap b{font-size:16px}
+.lab-cap span{color:var(--muted);font-size:13px}
 .road{display:flex;flex-direction:column;gap:2px;overflow:auto;padding-block:2px;min-height:0}
 .stop{position:relative;display:grid;grid-template-columns:20px minmax(0,1fr);column-gap:8px;align-items:center;text-align:left;background:none;border:0;padding:6px 4px;border-radius:8px;color:var(--muted);cursor:pointer;min-height:44px}
 .stop .dot{grid-row:1/3;width:14px;height:14px;border-radius:50%;border:2px solid var(--bc);background:var(--panel);justify-self:center;position:relative;z-index:1}
@@ -231,7 +242,8 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none
 @media (max-width:760px){
   .intro{grid-template-columns:minmax(0,1fr)}
   main.is-work{overflow:auto}
-  .work{height:auto;grid-template-columns:minmax(0,1fr)}
+  .work{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
+  .lab svg{height:64px}
   .road{flex-direction:row;overflow-x:auto;padding-bottom:4px}
   .stop{grid-template-columns:auto;justify-items:center;text-align:center;min-width:76px;row-gap:4px}
   .stop .dot,.stop .lbl:last-child{grid-row:auto}
@@ -647,7 +659,7 @@ function renderWork(){
   var st=steps(),i=Math.min(S.step,st.length-1),c=st[i],n=st[i+1];
   S.step=i;
   var later=st.slice(i+2);
-  view.innerHTML='<div class="work">'+
+  view.innerHTML='<div class="work">'+labHtml(c)+
   '<nav class="road" aria-label="Fortschritt">'+st.map(function(x,k){
      return '<button class="stop b-'+x.bath+(k<i?' done':k===i?' now':'')+'" data-act="jump" data-i="'+k+'"'+(k===i?' aria-current="step"':'')+'><span class="dot"></span><span class="lbl">'+x.short+'</span>'+(x.kind==='timed'?'<span class="dur" data-dur="'+x.id+'">'+fmt(x.duration)+'</span>':'')+'</button>';
   }).join('')+'</nav>'+
@@ -685,6 +697,34 @@ function renderWork(){
   updateTempHint();
   tick();
 }
+var LAB={
+  heat:{on:['bath','dev','blix','stab','water'],flow:'Wasserbad auf 30,0 °C, alle Flaschen und der Wasserkrug ins Bad'},
+  load:{on:['tank'],flow:'Film im Dunkeln in den Tank'},
+  measure:{on:['dev','blix','stab','cups'],flow:'Entwickler messen, je ein Becher DEV, BLIX und STAB füllen'},
+  prewarm:{on:['water','tank','sink'],flow:'Wasserkrug → Tank → Abfluss'},
+  dev:{on:['dev','f-dev','tank'],flow:'DEV-Becher → Trichter DEV → Tank → zurück in DEV-Flasche'},
+  blix:{on:['blix','f-blix','tank'],flow:'BLIX-Becher → Trichter BLIX → Tank → zurück in BLIX-Flasche'},
+  wash:{on:['water','tank','sink'],flow:'Wasserkrug → Tank → Abfluss, jede Minute neu'},
+  stab:{on:['stab','f-stab','tank'],flow:'STAB-Becher → Trichter STAB → Tank → zurück in STAB-Flasche'},
+  hang:{on:['tank'],flow:'Film aus dem Tank nehmen und aufhängen'},
+  clean:{on:['dev','blix','stab','f-dev','f-blix','f-stab','cups'],flow:'Strichliste auf die Flaschen, Becher und Trichter spülen'}
+};
+function labSvg(id){
+  var on=(LAB[id]||{on:[]}).on;
+  function cls(k){return 'part'+(on.indexOf(k)>=0?' lab-on':' off');}
+  function bottle(k,x,label){return '<g class="'+cls(k)+'"><rect x="'+(x+9)+'" y="16" width="10" height="9" rx="2" class="lab-line"/><rect x="'+x+'" y="24" width="28" height="42" rx="5" style="fill:var(--'+k+')" class="lab-line"/><text x="'+(x+14)+'" y="80" text-anchor="middle">'+label+'</text></g>';}
+  function funnel(k,x,label){return '<g class="'+cls('f-'+k)+'"><path d="M'+x+' 30 h30 l-11 16 v14 h-8 v-14 z" style="fill:var(--'+k+')" class="lab-line"/><text x="'+(x+15)+'" y="80" text-anchor="middle">'+label+'</text></g>';}
+  return '<svg viewBox="0 0 560 88" role="img" aria-label="Laboraufbau: '+esc((LAB[id]||{}).flow||'')+'">'+
+    '<g class="'+cls('bath')+'"><rect x="2" y="6" width="196" height="80" rx="6" class="lab-bath"/><title>Wasserbad 30 °C</title></g>'+
+    bottle('dev',12,'DEV')+bottle('blix',56,'BLIX')+bottle('stab',100,'STAB')+
+    '<g class="'+cls('water')+'"><path d="M148 26 h30 v40 h-30 z M178 32 h8 v20 h-8" style="fill:var(--water)" class="lab-line"/><text x="163" y="80" text-anchor="middle">Wasser</text></g>'+
+    '<g class="'+cls('cups')+'"><path d="M214 40 h22 l-3 26 h-16 z M240 40 h22 l-3 26 h-16 z M266 40 h22 l-3 26 h-16 z" class="lab-line"/><text x="251" y="80" text-anchor="middle">Becher</text></g>'+
+    funnel('dev',304,'DEV')+funnel('blix',344,'BLIX')+funnel('stab',384,'STAB')+
+    '<g class="'+cls('tank')+'"><rect x="436" y="20" width="44" height="48" rx="6" style="fill:var(--raised)" class="lab-line"/><rect x="430" y="14" width="56" height="8" rx="3" style="fill:var(--ink)"/><text x="458" y="80" text-anchor="middle">Tank</text></g>'+
+    '<g class="'+cls('sink')+'"><path d="M502 46 h52 l-6 20 h-40 z M528 66 v8" class="lab-line"/><text x="528" y="86" text-anchor="middle">Abfluss</text></g>'+
+    '</svg>';
+}
+function labHtml(c){var l=LAB[c.id]||{flow:''};return '<div class="lab" id="lab">'+labSvg(c.id)+'<div class="lab-cap"><b>'+c.title+'</b><span>'+l.flow+'</span></div></div>';}
 function refreshDurations(){
   var st=steps();
   document.querySelectorAll('[data-dur]').forEach(function(el){var x=st[stepIndex(el.getAttribute('data-dur'))];if(x){var v=fmt(x.duration);if(el.textContent!==v)el.textContent=v;}});
