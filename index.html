@@ -462,7 +462,11 @@ var REST={invert:['Ruhen','Der Tank steht im Wasserbad.'],wash:['Stehen lassen',
 
 /* ---------- Ton, Vibration, Bildschirm ---------- */
 var ac=null;
+/* iOS/iPadOS: Web Audio ist im Stummmodus sonst stumm. 'playback' lässt die Signale trotzdem hören (Safari 17+). */
+function audioSession(){try{if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';}catch(e){}}
+audioSession();
 function audio(){
+  audioSession();
   if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){ac=null;}}
   if(ac&&ac.state!=='running'&&ac.state!=='closed'){try{var r=ac.resume();if(r&&r.catch)r.catch(function(){});}catch(e){}}
   return ac;
