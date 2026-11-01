@@ -291,7 +291,7 @@ input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none
 (function(){
 'use strict';
 var KEY='c41-ablauf-30-v1';
-var DEF={devTime:480,filmNo:1,films:1,volume:500,agInitial:10,agInterval:30,agCount:4,agTempo:2,sound:true};
+var DEF={devTime:480,blixTime:360,filmNo:1,films:1,volume:500,agInitial:10,agInterval:30,agCount:4,agTempo:2,sound:true};
 var TABS=['uebersicht','packliste','arbeitsweg','logbuch'];
 var LOGKEY='c41-logbuch-v1';
 var NSTEPS=10;
@@ -330,6 +330,7 @@ function load(){
   st.notes=typeof st.notes==='string'?st.notes:'';
   var r=obj(d.settings),s={};
   s.devTime=numOr(r.devTime,DEF.devTime,60,1800);
+  s.blixTime=numOr(r.blixTime,DEF.blixTime,60,1800);
   s.filmNo=numOr(r.filmNo,DEF.filmNo,1,99);
   s.volume=r.volume===300?300:500;
   s.films=r.films===2&&s.volume===500?2:1;
@@ -381,7 +382,7 @@ function steps(){
          'Alle '+s.agInterval+' s: '+s.agCount+'× kippen mit leichter Drehung, im Takt des Kreises. Dazwischen steht der Tank im Bad, Wasser unter dem Trichterdeckel.',
          '10 s vor Ende ausgießen, zurück in die DEV-Flasche. Flasche randvoll machen oder Luft herausdrücken.'],
    prepare:['DEV-Becher, '+v+' ml, 30 °C','Trichter DEV','Start drücken, sobald du eingießt']},
-  {id:'blix',short:'Blix',chip:'BLIX',title:'Bleichfixierbad',bath:'blix',kind:'timed',duration:360,mode:'invert',temp:'30 °C',move:moveTxt(),pourTo:'BLIX-Flasche',
+  {id:'blix',short:'Blix',chip:'BLIX',title:'Bleichfixierbad',bath:'blix',kind:'timed',duration:s.blixTime,mode:'invert',temp:'30 °C',move:moveTxt(),pourTo:'BLIX-Flasche',
    todo:['Direkt nach dem Entwickler einfüllen, ohne Zwischenwässern.',
          'Bewegung wie beim Entwickler: '+moveTxt()+'.',
          'Die Blix-Zeit nicht verkürzen. Zu kurz lässt Silber im Film.',
@@ -693,6 +694,7 @@ function renderOverview(){
   '<li>Handschuhe tragen und lüften.</li></ul></div>'+
   '<div><h2>Einstellungen</h2><form class="settings" id="settingsForm" novalidate>'+
   '<label class="field"><span>Entwicklerzeit (m:ss)</span><input type="text" id="set-dev" inputmode="numeric" value="'+fmt(s.devTime)+'"><span class="err" id="set-dev-err"></span></label>'+
+  '<label class="field"><span>Blix-Zeit (m:ss)</span><input type="text" id="set-blix" inputmode="numeric" value="'+fmt(s.blixTime)+'"><span class="err" id="set-blix-err"></span></label>'+
   '<label class="field"><span>Film Nr. dieser Chemie</span><input type="number" id="set-film" min="1" max="99" value="'+s.filmNo+'"></label>'+
   '<label class="field"><span>Filme im Tank</span><select id="set-films"><option value="1"'+(s.films===1?' selected':'')+'>1 Film</option><option value="2"'+(s.films===2?' selected':'')+'>2 Filme</option></select></label>'+
   '<label class="field wide"><span>Menge pro Bad</span><select id="set-vol"><option value="300"'+(s.volume===300?' selected':'')+'>300 ml – 1 Kleinbildfilm</option><option value="500"'+(s.volume===500?' selected':'')+'>500 ml – 2 Kleinbildfilme oder 1 Rollfilm</option></select></label>'+
@@ -736,6 +738,7 @@ function extra(c){
     return '<div class="extra">'+
       '<label class="field"><span>DEV gemessen (°C)</span><input type="number" id="temp" step="0.1" min="15" max="45" inputmode="decimal" placeholder="30.0" value="'+esc(S.temp)+'"></label>'+
       '<label class="field"><span>Entwicklerzeit (m:ss)</span><input type="text" id="devInline" inputmode="numeric" value="'+fmt(s.devTime)+'"><span class="err" id="devInline-err"></span></label>'+
+      '<label class="field"><span>Blix-Zeit (m:ss)</span><input type="text" id="blixInline" inputmode="numeric" value="'+fmt(s.blixTime)+'"><span class="err" id="blixInline-err"></span></label>'+
       '<p class="hint" id="tempHint"></p></div>';
   }
   if(c.id==='clean'){
@@ -989,7 +992,7 @@ document.addEventListener('click',function(e){
   if(a==='jump'){jump(Number(b.dataset.i));return;}
   if(a==='reset'){confirmBtn(b,'reset','Wirklich zurücksetzen?',function(){S.running=false;S.before=0;S.startedAt=0;fired.clear();save();renderWork();});return;}
   if(a==='testsound'){audio();beep(660,0.08,0,true);beep(660,0.08,0.25,true);beep(1040,0.35,0.5,true);vib(200);return;}
-  if(a==='defaults'){var s=S.settings;S.settings=Object.assign({},DEF,{filmNo:s.filmNo,films:s.films,volume:s.volume,devTime:s.devTime,sound:s.sound});save();renderOverview();toast('Bewegung auf Standard zurückgesetzt.');return;}
+  if(a==='defaults'){var s=S.settings;S.settings=Object.assign({},DEF,{filmNo:s.filmNo,films:s.films,volume:s.volume,devTime:s.devTime,blixTime:s.blixTime,sound:s.sound});save();renderOverview();toast('Bewegung auf Standard zurückgesetzt.');return;}
   if(a==='packreset'){confirmBtn(b,'packreset','Wirklich alles abwählen?',function(){S.pack={};save();renderPack();});return;}
   if(a==='saverun'){saveRun(false);if(S.tab==='logbuch')renderLog();return;}
   if(a==='export'){exportCsv();return;}
@@ -1006,10 +1009,11 @@ document.addEventListener('change',function(e){
   if(el.id==='csvIn'){if(el.files&&el.files[0])importCsv(el.files[0]);return;}
   if(el.dataset.pk){S.pack[el.dataset.pk]=el.checked;save();updatePackCount();return;}
   if(el.dataset.ck){S.checks[el.dataset.ck]=el.checked;save();tick();return;}
-  if(el.id==='set-dev'||el.id==='devInline'){
+  if(el.id==='set-dev'||el.id==='devInline'||el.id==='set-blix'||el.id==='blixInline'){
+    var k=el.id.indexOf('blix')>=0?'blixTime':'devTime',ex=k==='blixTime'?'6:00':'8:00';
     var v=parseTime(el.value),err=document.getElementById(el.id+'-err');
-    if(v&&v>=60&&v<=1800){s.devTime=v;save();el.value=fmt(v);if(err)err.textContent='';refreshDynamic();}
-    else if(err)err.textContent='Bitte als m:ss eingeben, zum Beispiel 8:00.';
+    if(v&&v>=60&&v<=1800){s[k]=v;save();el.value=fmt(v);if(err)err.textContent='';refreshDynamic();}
+    else if(err)err.textContent='Bitte als m:ss eingeben, zum Beispiel '+ex+'.';
     return;
   }
   var spec=NUMS[el.id];
